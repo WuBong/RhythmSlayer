@@ -1,33 +1,61 @@
-# MyFirtstProject
+2025년- 10월 - 18 일 구현 시작
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+몬스터와 마주치면 노트내려오고 공격
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+기본 캐릭터 움직임 
 
-## Platforms
+캐릭터 애니메이션 (일단 플레이어만)
+hp
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+몬스터 구현
+충돌 시 특정 상태에 들어가게
 
-## Gradle
+hp는 캐릭터 위에 보이게;
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+오후 10:21 2025-10-19
+(pause running rythmgamemode)와 같은 gamestate는 gameworld에서 직접 건드리기보다는
+"이벤트성" 상호작용에는 인터페이스 콜백으로 간접적으로 건드리는 방식이 옳다는 생각
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+과제제출 마감이 있는 제한시간안에 얼마나 게임을 만들어낼지 모르는 상황에서도 오히려 복잡하더라도
+객체지향적으로 코드를 작성해야 아이디어가 바로바로 떠 올라도 반영하고, 유지보수가 쉽다라는 생각을 했음
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+main은 gameworld클래스 상위에 있는 존재로써 gameworld클래스는 main을 몰라야 함.
+
+
+물리현상을 관장하는 게임월드와 연계되게 하는 것 보다는 리듬게임 매니저와 게임월드는 몰라야 한다는 생각
+따로 구현 후 결과만 메인에 전달하는 방식으로 구현 따라서 인터페이스 콜백으로 인자만 전달.
+오후 9:15 2025-10-23
+라고 생각했지만.. 메인에서 계속 캐릭터의 상태를 관찰하면 되는 것 아닌가라는 생각을 하게되었다.
+
+
+오전 1:55 2025-10-20
+리듬게임매니저 클래스를 따루두니 카메라 좌표계 문제가 생김
+뷰포트 카메라 개념이 없어서 생긴 일  그래픽스 공부의 필요성을 느낌
+
+충돌구현 분리
+
+씬 구별
+피격 구현
+공격 구현
+인벤토리 시스템 구현
+플점 구현
+
+오후 6:05 2025-10-26
+단순 엔진을 써서 게임개발을 배웠을 때는, 튜토리얼 없이는 특정 기능을 구현할 수 없었고 
+이것을 왜 이렇게 하는 이유를 몰라서 기계적으로 외웠지만, 
+ex) 유니티 빈 오프젝트에 특정매니저 스크립트를 넣는 것
+
+libgdx를 통해 메인과 게임월드 각종 매니저를 만들면서 엔진에서 왜 그렇게 게임개발 하는지는 이해되었다.
+
+
+오후 10:09 2025-10-26
+json을 통한 스테이지 구현, 툴 만들어보는 것도 좋겠다.
+
+
+오후 11:22 2025-10-26
+왜 벽이 통과 되었었는지도 포트폴리오에 넣어볼 것 gameworld의 업데이트 순서에 따라서 왜그런지
+
+
+
+
+
