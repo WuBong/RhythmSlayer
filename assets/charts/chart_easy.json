@@ -1,0 +1,7 @@
+[
+  {"time": 0.5, "lane": 0},
+  {"time": 1.2, "lane": 2},
+  {"time": 1.8, "lane": 3},
+  {"time": 2.4, "lane": 4},
+  {"time": 3.0, "lane": 1}
+]
