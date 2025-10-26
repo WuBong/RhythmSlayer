@@ -85,7 +85,8 @@ public class GameWorld {
         score = 0;
 
         loadGround(10, 100);
-        monsterSpawning(1, 200);
+        loadGround1(10, 500);
+        monsterSpawning(3, 200);
         ItemSpawning(1, 300);
 
         //충돌 매니저
@@ -139,7 +140,7 @@ public class GameWorld {
         checkCoinCollisions();
         checkBlockCollisions(player.velocity.x * delta);
         checkBlockCollisionsY(player.velocity.y * delta);
-        checkMonsterCollision();
+        if(!player.getDamagedState()) checkMonsterCollision();
         checkItemCollisions();
         checkAttackObjectCollisions();
 
@@ -196,6 +197,18 @@ public class GameWorld {
         // 첫 블록의 시작 X 위치 (400을 기준으로 왼쪽으로 블록 너비의 절반만큼 이동)
         float startX = 400 - Block.BlockWidth/2;
         float startY = 0; // 바닥 높이
+
+        for(int i = 0; i < numberOfBlocks; i++){
+            // i * spaceSize 만큼 오른쪽으로 이동하며 블록 배치
+            float x = startX + (i * spaceSize);
+            blocks.add(new Block(blockTexture, x, startY));
+        }
+    }
+
+    private void loadGround1(int numberOfBlocks, float spaceSize){
+        // 첫 블록의 시작 X 위치 (400을 기준으로 왼쪽으로 블록 너비의 절반만큼 이동)
+        float startX = 400 - Block.BlockWidth/2;
+        float startY = 250; // 바닥 높이
 
         for(int i = 0; i < numberOfBlocks; i++){
             // i * spaceSize 만큼 오른쪽으로 이동하며 블록 배치
@@ -379,7 +392,6 @@ public class GameWorld {
                     listener.onMonsterCollision();
                 }
             }
-            break;
         }
         if(!collision) {
             collision = false;

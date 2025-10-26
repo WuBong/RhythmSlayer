@@ -245,4 +245,9 @@ public class GameCharacter {
     public float getY() { return position.y; }
     public float getWidth()  { return CharaterSize_width; }
     public float getHeight() { return CharaterSize_height; }
+    public boolean getDamagedState() {
+        if(state == State.DAMEGED)
+            return true;
+        return false;
+        }
 }

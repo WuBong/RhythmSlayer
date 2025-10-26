@@ -181,6 +181,7 @@ public class RhythmGameManager {
         // 1. SpriteBatch를 잠시 멈추고 ShapeRenderer로 모든 도형을 먼저 그린다.
         batch.end();
 
+
         // 1-1. 하이라이트 효과 그리기 (채워진 사각형)
         shape.begin(ShapeRenderer.ShapeType.Filled);
         shape.setColor(highlightColor);
@@ -220,6 +221,7 @@ public class RhythmGameManager {
         if (judgmentTimer > 0) {
             font.draw(batch, lastJudgement, viewWidth / 2f - 70f, viewHeight / 2f + 200f);
         }
+
         font.draw(batch, "[A]", laneX[0] + laneWidth/2 -15, lanesY0+60);
         font.draw(batch, "[S]", laneX[1] + laneWidth/2 -15, lanesY0+60);
         font.draw(batch, "[D]", laneX[2] + laneWidth/2 -15, lanesY0+60);
