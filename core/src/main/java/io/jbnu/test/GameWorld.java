@@ -141,6 +141,7 @@ public class GameWorld {
         checkBlockCollisionsY(player.velocity.y * delta);
         checkMonsterCollision();
         checkItemCollisions();
+        checkAttackObjectCollisions();
 
         // --- 6. 그래픽 동기화 ---
         player.updateAnimation(delta);
@@ -199,19 +200,16 @@ public class GameWorld {
         for(int i = 0; i < numberOfBlocks; i++){
             // i * spaceSize 만큼 오른쪽으로 이동하며 블록 배치
             float x = startX + (i * spaceSize);
-
-            // blocks 배열에 Block 객체 추가 (코드를 blocks로 수정)
             blocks.add(new Block(blockTexture, x, startY));
         }
     }
 
     private void attackObjects_spawning() {
-        if(getCanAttack()) return; //쿨타임과 소환 오브젝트 일치화
         final int projW = 64;
         final int projH = 64;
 
         boolean facingRight = player.isFacingRight();
-        float speed = facingRight ? 600f : - 600f;
+        float speed = facingRight ? 700f : - 700f;
 
         float startX = player.position.x + (facingRight ? player.CharaterSize_width : - projW);
         float startY = player.position.y + player.CharaterSize_height * 0.5f - projH* 0.5f;
@@ -223,7 +221,6 @@ public class GameWorld {
             speed, 0f,
             projW, projH,
             0, 6));
-
     }
 
     //충돌관리영역
@@ -242,17 +239,17 @@ public class GameWorld {
                 if (moveAmount > 0) {
                     player.velocity.x = 0;
                     player.position.x = block.bounds.x - player.CharaterSize_width;
-                    System.out.println("왼쪽 벽에서 충돌!");
-                    System.out.println("플레이어 위치:");
-                    System.out.println(player.position.x);
-                    System.out.println(block.position.x);
+                    //System.out.println("왼쪽 벽에서 충돌!");
+                    //System.out.println("플레이어 위치:");
+                    //System.out.println(player.position.x);
+                    //System.out.println(block.position.x);
                 } else if (moveAmount < 0) {
                     player.velocity.x = 0;
                     player.position.x = block.bounds.x + block.bounds.width;
-                    System.out.println("오른 벽에서 충돌!");
-                    System.out.println("플레이어 위치:");
-                    System.out.println(player.position.x);
-                    System.out.println(block.position.x);
+                    //System.out.println("오른 벽에서 충돌!");
+                    //System.out.println("플레이어 위치:");
+                    //System.out.println(player.position.x);
+                    //System.out.println(block.position.x);
                 }
                 player.syncBoundsToPosition();
                 break;
@@ -285,14 +282,14 @@ public class GameWorld {
                     player.velocity.y = 0; // 위로 더 못 가게
                     player.position.y = block.bounds.y - player.CharaterSize_height;
 
-                    System.out.println("천장에 충돌!");
+                    //System.out.println("천장에 충돌!");
                 } else if (moveAmount < 0) {
                     // 아래로 이동 중 바닥 충돌
                     player.velocity.y = 0;
                     player.position.y = block.bounds.y + block.bounds.height;
 
                     player.isGrounded = true; // 바닥에 닿았다고 표시
-                    System.out.println("바닥에 충돌!");
+                    //System.out.println("바닥에 충돌!");
                 }
                 player.syncBoundsToPosition();
                 break;
@@ -318,6 +315,41 @@ public class GameWorld {
             }
         }
     }
+
+    private void checkAttackObjectCollisions() {
+        // 공격 오브젝트가 하나도 없으면 바로 종료
+        if (attackObjects.size == 0 || monsters.size == 0) return;
+
+        for (Iterator<AttackObject> atkIter = attackObjects.iterator(); atkIter.hasNext();) {
+            AttackObject atk = atkIter.next();
+            Rectangle atkBounds = new Rectangle(atk.position.x, atk.position.y, atk.CharaterSize_width, atk.CharaterSize_height);
+
+            for (Iterator<Monster> monIter = monsters.iterator(); monIter.hasNext();) {
+                Monster monster = monIter.next();
+
+                if (atkBounds.overlaps(monster.bounds)) {
+                    // 🔥 충돌 발생!
+                    System.out.println("몬스터 피격!");
+
+                    // 몬스터 제거
+                    monIter.remove();
+
+                    atkIter.remove(); //관통형이 아닐 때.
+
+                    // 점수 증가 등 효과
+                    score += 5;
+                    System.out.println("Score +5! 현재 점수: " + score);
+
+                    // 피격 사운드나 이펙트 연동 가능
+                    // listener.onMonsterHit();  ← 이런 콜백도 가능
+
+                    // 한 공격은 한 몬스터만 타격한다고 가정 → 다음 오브젝트로
+                    break;
+                }
+            }
+        }
+    }
+
     private void checkCoinCollisions() {
         player.syncBoundsToPosition();
         // 플레이어와 떨어지는 오브젝트들의 충돌 검사
@@ -401,7 +433,12 @@ public class GameWorld {
     }
 
     public void onPlayerAttack(){
-        player.attack();
+        if(!player.canAttack()){
+            return;
+        }
+
+        player.attack();    //공격 실행 및 애니메이션 쿨타임 시작
+        // 투사체 생성
         attackObjects_spawning();
     }
 

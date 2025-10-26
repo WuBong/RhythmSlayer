@@ -15,7 +15,6 @@ public class AttackObject {
     public Vector2 position;
     public Vector2 velocity;
 
-
     // === 렌더/충돌 ===
     public Rectangle bounds;
     public float CharaterSize_width = 64f;
