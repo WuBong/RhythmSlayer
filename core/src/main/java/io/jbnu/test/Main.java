@@ -30,6 +30,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     private Texture monsterTexture;
     private Texture ItemTexture;
     private Texture attackObjectTexture;
+    private Texture flagTexture;
 
     //상태창 폰트
     private BitmapFont hpFont;
@@ -47,6 +48,14 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     private OrthographicCamera camera;
     private Viewport viewport;
 
+    private final String[] stages = {
+        "stages/stage1.json",
+        "stages/stage2.json",
+        "stages/stage3.json"
+    };
+    private int stageIndex = 0;
+    private boolean switching = false; // 중복 전환 방지
+
     @Override
     public void create() {
         currentState = GameState.RUNNING;
@@ -63,10 +72,14 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         monsterTexture = new Texture("libgdx.png");
         ItemTexture = new Texture("ts808.jpg");
         attackObjectTexture = new Texture("attack_object.png");
+        flagTexture = new Texture("flag.png");
 
         world = new GameWorld(playerTexture,objectTexture,blockTexture,monsterTexture,
-            ItemTexture, attackObjectTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
+            ItemTexture, attackObjectTexture, flagTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
         //상태창 선언부
+
+        loadStage(stageIndex);
+
         hpFont = new BitmapFont();
         hpFont.getData().setScale(1);
 
@@ -75,7 +88,24 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         viewport = new FillViewport(800,600, camera);
         camera.setToOrtho(false, 800, 600);
     }
+    @Override
+    public void onStageClear() {
+        if (switching) return; // 중복 호출 방지
+        switching = true;
 
+        stageIndex = (stageIndex + 1) % stages.length;
+        loadStage(stageIndex);
+    }
+    private void loadStage(int idx) {
+        StageData data = StageLoader.load(stages[idx]);
+
+        // 배경/음악 교체가 필요하면 여기서:
+        // setBackground(data.background);
+        // playBgm(data.bgm);
+
+        world.resetWith(data);
+        switching = false; // 전환 종료
+    }
     @Override
     public void onMonsterCollision() {
         System.out.println("몬스터와 접촉 리듬게임 모드로 변환!");
@@ -140,6 +170,9 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             for (AttackObject atk : world.getAttackObjects()) {
                 atk.draw(batch);
             }
+            for(Flag flag : world.getFlag()){
+                flag.draw(batch);
+            }
             //폰트 화면에 그리기
             hpFont.draw(batch, "HP: " + world.getPlayer().hp, world.getPlayer().position.x + world.getPlayer().CharaterSize_width / 2, world.getPlayer().position.y + world.getPlayer().bounds.height + 20); //플레이어 위에 hp
         }
@@ -154,7 +187,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
 
     private void input() {
 
-            if(Gdx.input.isKeyPressed(Keys.ESCAPE)){
+            if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)){
                 if(currentState == GameState.RUNNING){
                     currentState = GameState.PAUSED;
                 }
@@ -179,6 +212,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             }
 
     }
+
 
     public void enterRhythmMode() {
         currentState = GameState.RHYTHM_MODE;

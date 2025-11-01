@@ -23,7 +23,7 @@ public class GameWorld {
     private Array<Block> blocks;
     private Array<Item> items;
     private Array<AttackObject> attackObjects;
-
+    private Array<Flag> flag;
     private Monster currentOpponent;// 현재 리듬게임 대상 중인 몬스터
 
     private Array<Monster> monsters;
@@ -35,6 +35,7 @@ public class GameWorld {
     private Texture monsterTexture;
     private Texture itemTexture;
     private Texture attackObjectTexture;
+    private Texture flagTexture;
 
     private float worldWidth; // 랜덤 위치 생성을 위해 월드 너비 저장
     private float worldheight;
@@ -43,10 +44,10 @@ public class GameWorld {
     private GameWorldListener listener;
     //리듬게임 매니저
 
-    private int level = 1; //game의 레벨
+    private int level = 0; //game의 레벨
 
     public GameWorld (Texture playerTexture, Texture objectTexture,
-                     Texture blockTexture, Texture monsterTexture, Texture itemTexture, Texture attackObjectTexture,
+                     Texture blockTexture, Texture monsterTexture, Texture itemTexture, Texture attackObjectTexture, Texture flagTexture,
                      float worldWidth, float worldheight, GameWorldListener listener)  {
 
 
@@ -57,6 +58,7 @@ public class GameWorld {
         this.monsterTexture = monsterTexture;
         this.itemTexture = itemTexture;
         this.attackObjectTexture = attackObjectTexture;
+        this.flagTexture = flagTexture;
 
         this.worldWidth = worldWidth;
         this.worldheight = worldheight;
@@ -82,14 +84,17 @@ public class GameWorld {
         blocks = new Array<>();
         items = new Array<>();
         attackObjects = new Array<>();
+        flag = new Array<>();
         score = 0;
 
-        loadGround(10, 100);
-        loadGround1(10, 500);
-        monsterSpawning(3, 200);
-        ItemSpawning(1, 300);
+        //스테이지 구성
+        if(level == 1) {
+            loadGround(10, 100);
+            monsterSpawning(3, 200);
+            loadFlag(800, 100);
+            player.position.x = 0;
+        }
 
-        //충돌 매니저
     }
 
     public void update(float delta) { //물리업데이트
@@ -143,11 +148,60 @@ public class GameWorld {
         if(!player.getDamagedState()) checkMonsterCollision();
         checkItemCollisions();
         checkAttackObjectCollisions();
+        checkFlagCollisions();
 
         // --- 6. 그래픽 동기화 ---
         player.updateAnimation(delta);
     }
 
+    public void resetWith(StageData data) {
+        // 1) 중력/환경
+        // WORLD_GRAVITY는 상수라 그대로 두고, 필요하면 별도 gravity 변수 써도 됨.
+        // 여기선 그대로 두되, 필요하면 data.gravity를 참고해도 된다.
+
+        // 2) 기존 오브젝트 정리
+        objects.clear();
+        blocks.clear();
+        items.clear();
+        attackObjects.clear();
+        monsters.clear();
+        flag.clear();
+
+        // 3) 플레이어 위치 초기화 + 상태 리셋
+        if (player == null) {
+            player = new GameCharacter(playerTexture, worldWidth /2, 300, 0,
+                128, 128,    // frameW, frameH
+                8, 14,       // idle
+                0, 9,        // run
+                9, 12,       // jump
+                4, 6,        // damaged
+                3, 4         // attack
+            );
+        }
+        player.position.set(data.playerSpawnX, data.playerSpawnY);
+        player.velocity.set(0, 0);
+        player.isGrounded = false;
+        // player.setDamagedState(false); // 네 구현에 맞춰 필요 시 호출
+        // player.resetAnimation() 등이 있으면 같이 호출
+
+        // 4) 블록/아이템/몬스터 재생성
+        for (StageData.BlockDef b : data.blocks) {
+            blocks.add(new Block(blockTexture, b.x, b.y));
+        }
+        for (StageData.ItemDef it : data.items) {
+            items.add(new Item(itemTexture, it.x, it.y));
+        }
+        for (StageData.MonsterDef m : data.monsters) {
+            monsters.add(new Monster(monsterTexture, m.x, m.y));
+        }
+
+        // 5) 플래그 생성
+        flag.add(new Flag(flagTexture, data.flagX, data.flagY));
+
+        // 6) 점수/레벨 등은 네 선택
+        // score 유지할지 초기화할지 결정. 일단 유지:
+        // this.score = this.score;
+    }
 
     //오브젝트 소환 부
     private void monsterSpawning(int numberOfMonster, float spaceSize){
@@ -195,7 +249,7 @@ public class GameWorld {
 
     private void loadGround(int numberOfBlocks, float spaceSize){
         // 첫 블록의 시작 X 위치 (400을 기준으로 왼쪽으로 블록 너비의 절반만큼 이동)
-        float startX = 400 - Block.BlockWidth/2;
+        float startX = 0;//400 - Block.BlockWidth/2;
         float startY = 0; // 바닥 높이
 
         for(int i = 0; i < numberOfBlocks; i++){
@@ -215,6 +269,10 @@ public class GameWorld {
             float x = startX + (i * spaceSize);
             blocks.add(new Block(blockTexture, x, startY));
         }
+    }
+
+    private void loadFlag(float x, float y){
+        flag.add(new Flag(flagTexture, x, y));
     }
 
     private void attackObjects_spawning() {
@@ -252,17 +310,11 @@ public class GameWorld {
                 if (moveAmount > 0) {
                     player.velocity.x = 0;
                     player.position.x = block.bounds.x - player.CharaterSize_width;
-                    //System.out.println("왼쪽 벽에서 충돌!");
-                    //System.out.println("플레이어 위치:");
-                    //System.out.println(player.position.x);
-                    //System.out.println(block.position.x);
+
                 } else if (moveAmount < 0) {
                     player.velocity.x = 0;
                     player.position.x = block.bounds.x + block.bounds.width;
-                    //System.out.println("오른 벽에서 충돌!");
-                    //System.out.println("플레이어 위치:");
-                    //System.out.println(player.position.x);
-                    //System.out.println(block.position.x);
+
                 }
                 player.syncBoundsToPosition();
                 break;
@@ -329,6 +381,20 @@ public class GameWorld {
         }
     }
 
+    private void checkFlagCollisions(){
+        player.syncBoundsToPosition();
+        for(Flag flag : getFlag()) {
+            if (player.bounds.overlaps(flag.bounds)){
+                // 변경: Main에게 "스테이지 클리어" 알림
+                if (listener != null) {
+                    listener.onStageClear();
+                }
+                return; // 중복 호출 방지
+            }
+        }
+    }
+
+
     private void checkAttackObjectCollisions() {
         // 공격 오브젝트가 하나도 없으면 바로 종료
         if (attackObjects.size == 0 || monsters.size == 0) return;
@@ -346,12 +412,8 @@ public class GameWorld {
 
                     // 몬스터 제거
                     monIter.remove();
-
                     atkIter.remove(); //관통형이 아닐 때.
 
-                    // 점수 증가 등 효과
-                    score += 5;
-                    System.out.println("Score +5! 현재 점수: " + score);
 
                     // 피격 사운드나 이펙트 연동 가능
                     // listener.onMonsterHit();  ← 이런 콜백도 가능
@@ -369,13 +431,7 @@ public class GameWorld {
         for (Iterator<CoinObject> iter = objects.iterator(); iter.hasNext(); ) {
             CoinObject obj = iter.next();
             if (player.bounds.overlaps(obj.bounds)) {
-                // 충돌 발생!
-                score++; // 점수 1점 증가
-                if(score == 10){
-                    score = 0;
-                    level++;
-                }
-                System.out.println("Score: " + score); // 콘솔에 점수 출력 (테스트용)
+                player.hp++;
                 iter.remove(); // 충돌한 오브젝트는 즉시 제거
             }
         }
@@ -469,6 +525,8 @@ public class GameWorld {
     public Array<Item> getItems() {return items;}
 
     public Array<AttackObject> getAttackObjects() {return attackObjects;}
+
+    public Array<Flag> getFlag(){return flag;}
     public void removeMonster(Monster monster) {
         if (monsters.contains(monster, true)) {
             monsters.removeValue(monster, true);
