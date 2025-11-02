@@ -20,7 +20,9 @@ public class StageData {
     public Array<MonsterDef> monsters = new Array<>();
     public Array<BossMonsterDef> BossMonsters = new Array<>();
     public Array<SpeedupDef> speedups = new Array<>();
+    public Array<HealthDef> healthitems = new Array<>();
 
+    public static class HealthDef { public float x; public float y; public String type;}
     public static class BlockDef { public float x; public float y; }
     public static class ItemDef  { public float x; public float y; public String type; }
     public static class MonsterDef { public float x; public float y; public String type; }

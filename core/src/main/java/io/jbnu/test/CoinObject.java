@@ -23,12 +23,11 @@ public class CoinObject {
      * @param region 오브젝트 텍스처
      * @param startX 시작 X 위치
      * @param startY 시작 Y 위치
-     * @param speed 떨어지는 속도
      */
 
-    public CoinObject(Texture region, float startX, float startY, float speed) {
+    public CoinObject(Texture region, float startX, float startY) {
         this.position = new Vector2(startX, startY);
-        this.velocity = new Vector2(0, speed); // 아래로만 떨어지므로 Y 속도만 가짐
+        this.velocity = new Vector2(0, 0); // 아래로만 떨어지므로 Y 속도만 가짐
 
         this.sprite = new Sprite(region);
         this.sprite.setPosition(position.x, position.y);

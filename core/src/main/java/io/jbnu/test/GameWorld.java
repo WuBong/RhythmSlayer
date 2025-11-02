@@ -201,6 +201,9 @@ public class GameWorld {
         for (StageData.SpeedupDef s : data.speedups){
             speedups.add(new Speedup(speedupTexture, s.x, s.y));
         }
+        for (StageData.HealthDef h : data.healthitems){
+            objects.add(new CoinObject(objectTexture, h.x, h.y));
+        }
 
         // 5) 플래그 생성
         flag.add(new Flag(flagTexture, data.flagX, data.flagY));
@@ -304,7 +307,6 @@ public class GameWorld {
         }
 
         player.position.y = (player.position.y);
-        //player.syncSpriteToPosition();
     }
 
 
@@ -386,7 +388,7 @@ public class GameWorld {
         for (Iterator<CoinObject> iter = objects.iterator(); iter.hasNext(); ) {
             CoinObject obj = iter.next();
             if (player.bounds.overlaps(obj.bounds)) {
-                player.hp++;
+                player.hp = player.hp + 2;
                 iter.remove(); // 충돌한 오브젝트는 즉시 제거
             }
         }

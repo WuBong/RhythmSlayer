@@ -71,7 +71,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         effectSound = Gdx.audio.newSound(Gdx.files.internal("drop.mp3"));
         //텍스처 선언부
         playerTexture = new Texture("player_sheet.png");
-        objectTexture = new Texture("coin.jpg");
+        objectTexture = new Texture("HP.jpg");
         pauseTexture = new Texture("pause.png");
         blockTexture = new Texture("jbnu.jpg");
         monsterTexture = new Texture("dragon.png");
@@ -103,7 +103,6 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     public void onStageClear() {
         if (switching) return; // 중복 호출 방지
         switching = true;
-
         stageIndex = (stageIndex + 1);
         if(stageIndex == 3){
             stageIndex = 0;
@@ -186,7 +185,6 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             for (Monster monster : world.getMonsters()) {
                 monster.draw(batch);
             }
-
             for (Item item : world.getItems()) {
                 item.draw(batch);
             }
@@ -229,8 +227,8 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             }
         }
 
-        if(Gdx.input.isKeyJustPressed(Keys.R)){
-            if(currentState == GameState.RESTART){
+        if(Gdx.input.isKeyJustPressed(Keys.R)) {
+            if(currentState == GameState.RESTART) {
                 currentState = GameState.RUNNING;
             }
         }
