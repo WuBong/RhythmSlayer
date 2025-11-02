@@ -31,6 +31,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     private Texture ItemTexture;
     private Texture attackObjectTexture;
     private Texture flagTexture;
+    private Texture BossMonsterTexture;
 
     //상태창 폰트
     private BitmapFont hpFont;
@@ -73,9 +74,10 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         ItemTexture = new Texture("ts808.jpg");
         attackObjectTexture = new Texture("attack_object.png");
         flagTexture = new Texture("flag.png");
+        BossMonsterTexture = new Texture("yamada.jpg");
 
         world = new GameWorld(playerTexture,objectTexture,blockTexture,monsterTexture,
-            ItemTexture, attackObjectTexture, flagTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
+            ItemTexture, attackObjectTexture, flagTexture, BossMonsterTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
         //상태창 선언부
 
         loadStage(stageIndex);
@@ -172,6 +174,9 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             }
             for(Flag flag : world.getFlag()){
                 flag.draw(batch);
+            }
+            for(BossMonster bossMonster : world.getBossMonsters()){
+                bossMonster.draw(batch);
             }
             //폰트 화면에 그리기
             hpFont.draw(batch, "HP: " + world.getPlayer().hp, world.getPlayer().position.x + world.getPlayer().CharaterSize_width / 2, world.getPlayer().position.y + world.getPlayer().bounds.height + 20); //플레이어 위에 hp

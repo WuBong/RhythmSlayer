@@ -24,6 +24,7 @@ public class GameWorld {
     private Array<Item> items;
     private Array<AttackObject> attackObjects;
     private Array<Flag> flag;
+    private Array<BossMonster> bossMonsters;
     private Monster currentOpponent;// 현재 리듬게임 대상 중인 몬스터
 
     private Array<Monster> monsters;
@@ -36,6 +37,7 @@ public class GameWorld {
     private Texture itemTexture;
     private Texture attackObjectTexture;
     private Texture flagTexture;
+    private Texture BossMonsterTexture;
 
     private float worldWidth; // 랜덤 위치 생성을 위해 월드 너비 저장
     private float worldheight;
@@ -48,6 +50,7 @@ public class GameWorld {
 
     public GameWorld (Texture playerTexture, Texture objectTexture,
                      Texture blockTexture, Texture monsterTexture, Texture itemTexture, Texture attackObjectTexture, Texture flagTexture,
+                     Texture BossMonsterTexture,
                      float worldWidth, float worldheight, GameWorldListener listener)  {
 
 
@@ -59,6 +62,7 @@ public class GameWorld {
         this.itemTexture = itemTexture;
         this.attackObjectTexture = attackObjectTexture;
         this.flagTexture = flagTexture;
+        this.BossMonsterTexture = BossMonsterTexture;
 
         this.worldWidth = worldWidth;
         this.worldheight = worldheight;
@@ -85,15 +89,8 @@ public class GameWorld {
         items = new Array<>();
         attackObjects = new Array<>();
         flag = new Array<>();
+        bossMonsters = new Array<>();
         score = 0;
-
-        //스테이지 구성
-        if(level == 1) {
-            loadGround(10, 100);
-            monsterSpawning(3, 200);
-            loadFlag(800, 100);
-            player.position.x = 0;
-        }
 
     }
 
@@ -194,6 +191,9 @@ public class GameWorld {
         for (StageData.MonsterDef m : data.monsters) {
             monsters.add(new Monster(monsterTexture, m.x, m.y));
         }
+        for (StageData.BossMonsterDef k : data.BossMonsters){
+            bossMonsters.add(new BossMonster(BossMonsterTexture, k.x, k.y));
+        }
 
         // 5) 플래그 생성
         flag.add(new Flag(flagTexture, data.flagX, data.flagY));
@@ -259,17 +259,6 @@ public class GameWorld {
         }
     }
 
-    private void loadGround1(int numberOfBlocks, float spaceSize){
-        // 첫 블록의 시작 X 위치 (400을 기준으로 왼쪽으로 블록 너비의 절반만큼 이동)
-        float startX = 400 - Block.BlockWidth/2;
-        float startY = 250; // 바닥 높이
-
-        for(int i = 0; i < numberOfBlocks; i++){
-            // i * spaceSize 만큼 오른쪽으로 이동하며 블록 배치
-            float x = startX + (i * spaceSize);
-            blocks.add(new Block(blockTexture, x, startY));
-        }
-    }
 
     private void loadFlag(float x, float y){
         flag.add(new Flag(flagTexture, x, y));
@@ -412,13 +401,8 @@ public class GameWorld {
 
                     // 몬스터 제거
                     monIter.remove();
-                    atkIter.remove(); //관통형이 아닐 때.
+                    atkIter.remove();
 
-
-                    // 피격 사운드나 이펙트 연동 가능
-                    // listener.onMonsterHit();  ← 이런 콜백도 가능
-
-                    // 한 공격은 한 몬스터만 타격한다고 가정 → 다음 오브젝트로
                     break;
                 }
             }
@@ -486,6 +470,7 @@ public class GameWorld {
     }
 
     public Array<Block> getBlocks() {return blocks;}
+    public Array<BossMonster> getBossMonsters() {return bossMonsters;}
 
     // GameScreen으로부터 '점프' 입력을 받음
     public void onPlayerJump() {
@@ -525,7 +510,6 @@ public class GameWorld {
     public Array<Item> getItems() {return items;}
 
     public Array<AttackObject> getAttackObjects() {return attackObjects;}
-
     public Array<Flag> getFlag(){return flag;}
     public void removeMonster(Monster monster) {
         if (monsters.contains(monster, true)) {
