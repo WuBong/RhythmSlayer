@@ -75,6 +75,13 @@ public class RhythmGameManager {
     private RhythmChart chart;
     private int nextNoteIndex = 0;
     private float songTimer = 0f;
+
+    private GameState currentState = GameState.RUNNING;
+
+    public enum GameState{
+        RUNNING,
+        PAUSED,
+    }
     public RhythmGameManager(RhythmGameListener listener) {
         this.listener = listener;
         this.font = new BitmapFont();
@@ -100,6 +107,7 @@ public class RhythmGameManager {
 
         hitSound = new HitSound();
         gamemode = 0;
+
     }
 
     public void enterRythmMode(int drive) {  //리듬게임 초기화
@@ -116,6 +124,7 @@ public class RhythmGameManager {
         missCount = 0;
         lastJudgement = "";
         judgmentTimer = 0f;
+        currentState = GameState.RUNNING;
 
         for(int i = 0; i < laneCount; i++){
             laneHighlightTimers[i] = 0;
@@ -124,48 +133,43 @@ public class RhythmGameManager {
 
     public void update(float delta) {
         if (!active) return;
+        if(currentState == GameState.RUNNING) {
+            if (judgmentTimer > 0) {
+                judgmentTimer -= delta;
+            }
 
-        if(judgmentTimer > 0){
-            judgmentTimer -= delta;
-        }
+            // --- 하이라이트 타이머 감소 로직 ---
+            for (int i = 0; i < laneCount; i++) {
+                if (laneHighlightTimers[i] > 0) {
+                    laneHighlightTimers[i] -= delta;
+                }
+            }
 
-        // --- 하이라이트 타이머 감소 로직 ---
-        for(int i = 0; i < laneCount; i++){
-            if(laneHighlightTimers[i] > 0){
-                laneHighlightTimers[i] -= delta;
+            if (successCount + missCount >= totalNotes) {
+                endRhythmGame();
+                return;
+            }
+
+            //노트 생성 타이머
+            spwanTimer += delta;
+            if (spwanTimer > spawnInterval) {
+                spwanTimer = 0f;
+                int lane = MathUtils.random(0, laneCount - 1);
+                notes.add(new Note(lane, viewHeight + 50f, notespeed, noteTexture, noteWidth, noteHeight));
+            }
+
+
+            for (int i = notes.size - 1; i >= 0; i--) {
+                Note n = notes.get(i);
+                n.update(delta, laneX[n.lane], laneWidth);
+
+                if (n.isMissed(hitLineY, goodRange)) {   //MISS 처리
+                    handleMiss();
+                    notes.removeIndex(i);
+                }
             }
         }
 
-
-        // 테스트용: Q 키로 종료
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-            System.out.println("리듬모드 종료 입력 감지됨!");
-            endRhythmGame();
-        }
-
-        if(successCount + missCount >= totalNotes){
-            endRhythmGame();
-            return;
-        }
-
-        //노트 생성 타이머
-        spwanTimer += delta;
-        if(spwanTimer > spawnInterval){
-            spwanTimer = 0f;
-            int lane = MathUtils.random(0, laneCount - 1);
-            notes.add(new Note(lane, viewHeight+50f, notespeed, noteTexture, noteWidth, noteHeight));
-        }
-
-
-        for (int i = notes.size - 1; i >= 0; i--) {
-            Note n = notes.get(i);
-            n.update(delta, laneX[n.lane], laneWidth);
-
-            if (n.isMissed(hitLineY, goodRange)){   //MISS 처리
-                handleMiss();
-                notes.removeIndex(i);
-            }
-        }
 
         handleInput();
     }
@@ -248,6 +252,12 @@ public class RhythmGameManager {
                 judge(i);
                 laneHighlightTimers[i] = HIGHLIGHT_DURATION;
             }
+        }
+        if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
+            if(currentState == GameState.RUNNING)
+                currentState = GameState.PAUSED;
+            else if(currentState == GameState.PAUSED)
+                currentState = GameState.RUNNING;
         }
     }
 

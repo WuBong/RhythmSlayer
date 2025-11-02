@@ -32,9 +32,12 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     private Texture attackObjectTexture;
     private Texture flagTexture;
     private Texture BossMonsterTexture;
+    private Texture speedupTexture;
 
     //상태창 폰트
     private BitmapFont hpFont;
+    private BitmapFont scoreFont;
+    private BitmapFont RestartGameFont;
 
     //월드크기 선언부
     private final float WORLD_WIDTH = 1280;
@@ -43,7 +46,8 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
     public enum GameState{
         RUNNING,
         PAUSED,
-        RHYTHM_MODE
+        RHYTHM_MODE,
+        RESTART
     }
     private GameState currentState;
     private OrthographicCamera camera;
@@ -70,20 +74,25 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         objectTexture = new Texture("coin.jpg");
         pauseTexture = new Texture("pause.png");
         blockTexture = new Texture("jbnu.jpg");
-        monsterTexture = new Texture("libgdx.png");
+        monsterTexture = new Texture("dragon.png");
         ItemTexture = new Texture("ts808.jpg");
         attackObjectTexture = new Texture("attack_object.png");
         flagTexture = new Texture("flag.png");
         BossMonsterTexture = new Texture("yamada.jpg");
+        speedupTexture = new Texture("speed_up.png");
 
         world = new GameWorld(playerTexture,objectTexture,blockTexture,monsterTexture,
-            ItemTexture, attackObjectTexture, flagTexture, BossMonsterTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
+            ItemTexture, attackObjectTexture, flagTexture, BossMonsterTexture, speedupTexture, this.WORLD_WIDTH, this.WORLD_HEIGHT, this);
         //상태창 선언부
 
         loadStage(stageIndex);
 
         hpFont = new BitmapFont();
         hpFont.getData().setScale(1);
+        scoreFont = new BitmapFont();
+        scoreFont.getData().setScale(3);
+        RestartGameFont = new BitmapFont();
+        RestartGameFont.getData().setScale(3);
 
         //카메라 선언부
         camera = new OrthographicCamera();
@@ -95,7 +104,11 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         if (switching) return; // 중복 호출 방지
         switching = true;
 
-        stageIndex = (stageIndex + 1) % stages.length;
+        stageIndex = (stageIndex + 1);
+        if(stageIndex == 3){
+            stageIndex = 0;
+            currentState = GameState.RESTART;
+        }
         loadStage(stageIndex);
     }
     private void loadStage(int idx) {
@@ -104,7 +117,7 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
         // 배경/음악 교체가 필요하면 여기서:
         // setBackground(data.background);
         // playBgm(data.bgm);
-
+        world.getPlayer().hp = 10;
         world.resetWith(data);
         switching = false; // 전환 종료
     }
@@ -136,10 +149,18 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             float playerx = playerposition.x;
             camera.position.set(playerx, 250, 0);
             camera.update();
+            if(world.getPlayer().hp <= 0){
+                world.getPlayer().hp = 10;
+                currentState = GameState.RESTART;
+            }
         }   //리듬게임 설계시
         else if (currentState == GameState.RHYTHM_MODE) {
             rythmManager.update(Gdx.graphics.getDeltaTime());
             //리듬모드일 때 카메라 고정
+            camera.position.set(400, 300, 0);
+            camera.update();
+        }
+        else if(currentState == GameState.RESTART){
             camera.position.set(400, 300, 0);
             camera.update();
         }
@@ -178,13 +199,20 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
             for(BossMonster bossMonster : world.getBossMonsters()){
                 bossMonster.draw(batch);
             }
+            for(Speedup speedup: world.getSpeedups()){
+                speedup.draw(batch);
+            }
             //폰트 화면에 그리기
             hpFont.draw(batch, "HP: " + world.getPlayer().hp, world.getPlayer().position.x + world.getPlayer().CharaterSize_width / 2, world.getPlayer().position.y + world.getPlayer().bounds.height + 20); //플레이어 위에 hp
+            scoreFont.draw(batch, "(1000 is next stage)Score : "+world.getScore(), world.getPlayer().position.x-400, 400);
         }
 
         else if(currentState == GameState.RHYTHM_MODE){
             batch.setProjectionMatrix(camera.combined);
             rythmManager.render(batch, camera);
+        }
+        else if(currentState == GameState.RESTART){
+            RestartGameFont.draw(batch, "ReStart game? press [R]", 0, 300);
         }
 
         batch.end();
@@ -192,14 +220,21 @@ public class Main extends ApplicationAdapter implements GameWorldListener, Rhyth
 
     private void input() {
 
-            if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)){
-                if(currentState == GameState.RUNNING){
-                    currentState = GameState.PAUSED;
-                }
-                else if(currentState == GameState.PAUSED) {
-                    currentState = GameState.RUNNING;
-                }
+        if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)){
+            if(currentState == GameState.RUNNING){
+                currentState = GameState.PAUSED;
             }
+            else if(currentState == GameState.PAUSED) {
+                currentState = GameState.RUNNING;
+            }
+        }
+
+        if(Gdx.input.isKeyJustPressed(Keys.R)){
+            if(currentState == GameState.RESTART){
+                currentState = GameState.RUNNING;
+            }
+        }
+
         //플레이어 이동 인식 부
             if(currentState == GameState.RUNNING) {
                 if (Gdx.input.isKeyPressed(Keys.RIGHT)) {
